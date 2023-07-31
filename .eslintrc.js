@@ -20,7 +20,7 @@ module.exports = {
     //use of space between function name and round brackets
     "class-methods-use-this": ["warn"],
     //use of this inside class
-    "no-console": "error",
+    // "no-console": "error",
     semi: "warn",
     "array-callback-return": ["error", { checkForEach: true }],
     "no-cond-assign": "error",
