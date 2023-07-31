@@ -3,3 +3,6 @@
 <!-- Add feature for chatting two users -->
 
 Add feature to end a chat
+{
+sender, message
+}

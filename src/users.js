@@ -5,22 +5,40 @@ class Users {
   #messages;
 
   constructor() {
-    this.#users = [];
+    this.#users = {};
     this.#messages = [];
+  }
+
+  #greet(name) {
+    return `Hello, ${name}\n`;
+  }
+
+  #displayMenu() {
+    return (
+      "Please select a chat" +
+      "\n" +
+      `${Object.keys(this.#users)}` +
+      "\n" +
+      "Type 'open [username]' to open a chat" +
+      "\n" +
+      "By default groupChat is selected" +
+      "\n"
+    );
   }
 
   #displayUnreadMessages(user) {
     this.#messages.forEach(({ name, message }) => user.write(name, message));
   }
 
-  #broadcast(socket, name, message) {
-    this.#messages.push({ name, message });
+  #getAllUsers(currentUser) {
+    return Object.values(this.#users).filter(
+      (user) => user.name !== currentUser
+    );
+  }
 
-    this.#users
-      .filter((user) => user.isDistinct(socket))
-      .forEach((user) => {
-        user.write(name, message);
-      });
+  #openDM(message, updateRecipients) {
+    const [_, username] = message.split(" ");
+    updateRecipients([this.#users[username]]);
   }
 
   handleConnection(socket) {
@@ -28,12 +46,18 @@ class Users {
     socket.write("Enter your name : ");
 
     socket.once("data", (data) => {
-      const user = new User(socket, data.trim());
+      const name = data.trim();
+      const user = new User(socket, name);
 
-      this.#users.push(user);
-      user.greet();
-      this.#displayUnreadMessages(user);
-      user.onData((name, message) => this.#broadcast(socket, name, message));
+      this.#users[name] = user;
+      user.write(this.#greet(name));
+      socket.write(this.#displayMenu());
+
+      Object.values(this.#users).forEach((user) =>
+        user.updateRecipients(this.#getAllUsers(user.name))
+      );
+
+      user.broadcast((message, cb) => this.#openDM(message, cb));
     });
   }
 }
