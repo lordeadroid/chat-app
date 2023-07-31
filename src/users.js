@@ -7,27 +7,24 @@ class Users {
     this.#users = [];
   }
 
-  #broadcast(socket, data) {
+  #broadcast(socket, name, data) {
     this.#users
       .filter((user) => user.isDistinct(socket))
       .forEach((user) => {
-        user.write(data);
+        user.write(name, data);
       });
   }
 
   handleConnection(socket) {
+    socket.setEncoding("utf-8");
     socket.write("Enter your name : ");
 
-    socket.once("data", (data) => {
-      const name = data;
-      const user = new User(socket, name);
+    socket.once("data", (name) => {
+      const user = new User(socket, name.trim());
 
       this.#users.push(user);
       user.greet();
-
-      socket.on("data", (data) => {
-        this.#broadcast(socket, data);
-      });
+      user.onData((name, data) => this.#broadcast(socket, name, data));
     });
   }
 }

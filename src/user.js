@@ -8,12 +8,19 @@ class User {
   }
 
   greet() {
-    const greeting = "Hello, " + this.#name;
+    const greeting = `Hello, ${this.#name}\n`;
     this.#socket.write(greeting);
   }
 
-  write(data) {
-    this.#socket.write(data);
+  write(sender, message) {
+    const messageToDisplay = `${sender} >> ${message}`;
+    this.#socket.write(messageToDisplay);
+  }
+
+  onData(cb) {
+    this.#socket.on("data", (data) => {
+      cb(this.#name, data);
+    });
   }
 
   isDistinct(socket) {
