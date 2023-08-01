@@ -38,6 +38,14 @@ class Users {
     return Object.keys(this.#users).filter((name) => name !== username);
   }
 
+  isPresent(username) {
+    return username in this.#users;
+  }
+
+  isNew(username) {
+    return !this.isPresent(username);
+  }
+
   get registeredUsers() {
     return Object.keys(this.#users);
   }
