@@ -1,7 +1,7 @@
 const net = require("node:net");
 
 const displayMessage = (data) => {
-  console.log(data.trim());
+  console.log(data);
 };
 
 const sendMessage = (inputStream, chatClient, message) => {

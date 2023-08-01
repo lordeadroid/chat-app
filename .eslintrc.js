@@ -22,7 +22,7 @@ module.exports = {
     //use of this inside class
     // "no-console": "error",
     semi: "warn",
-    "array-callback-return": ["error", { checkForEach: true }],
+    "array-callback-return": ["error", { checkForEach: false }],
     "no-cond-assign": "error",
     "no-dupe-keys": "error",
     "no-fallthrough": "warn",

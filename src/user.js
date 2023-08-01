@@ -1,42 +1,33 @@
 class User {
   #name;
-  #socket;
   #messages;
-  #recipients;
 
-  constructor(socket, name) {
-    this.#name = name;
-    this.#messages = [];
-    this.#recipients = [];
-    this.#socket = socket;
+  constructor(username) {
+    this.#name = username;
+    this.#messages = {
+      sent: [],
+      received: [],
+    };
   }
 
-  write(sender, message) {
-    const messageToDisplay = `${sender} >> ${message}\n`;
-
-    this.#messages.push({ sender, message });
-    this.#socket.write(messageToDisplay);
+  send(recipient, message) {
+    this.#messages.sent.push({ recipient, message });
   }
 
-  broadcast(openDM) {
-    this.#socket.on("data", (message) => {
-      if (message.startsWith("open ")) {
-        openDM(message, (recipients) => this.updateRecipients(recipients));
-        return;
-      }
-
-      this.#recipients.forEach((recipient) => {
-        recipient.write(this.#name, message);
-      });
-    });
+  receive(sender, message) {
+    this.#messages.received.push({ sender, message });
   }
 
-  updateRecipients(recipients) {
-    this.#recipients = recipients;
+  getSentMessagesTo(username) {
+    return this.#messages.sent.filter(
+      (message) => message.recipient === username
+    );
   }
 
-  isDistinct(socket) {
-    return this.#socket !== socket;
+  getReceivedMessagesFrom(username) {
+    return this.#messages.received.filter(
+      (message) => message.sender === username
+    );
   }
 
   get name() {

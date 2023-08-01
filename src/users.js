@@ -1,64 +1,39 @@
-const User = require("./user");
-
 class Users {
   #users;
-  #messages;
 
   constructor() {
     this.#users = {};
-    this.#messages = [];
   }
 
-  #greet(name) {
-    return `Hello, ${name}\n`;
+  addUser(user) {
+    this.#users[user.name] = user;
   }
 
-  #displayMenu() {
-    return (
-      "Please select a chat" +
-      "\n" +
-      `${Object.keys(this.#users)}` +
-      "\n" +
-      "Type 'open [username]' to open a chat" +
-      "\n" +
-      "By default groupChat is selected" +
-      "\n"
-    );
+  send(username, message) {
+    const user = this.#users[username];
+    user.send(username, message);
   }
 
-  #displayUnreadMessages(user) {
-    this.#messages.forEach(({ name, message }) => user.write(name, message));
+  receive(username, message) {
+    const user = this.#users[username];
+    user.receive(username, message);
   }
 
-  #getAllUsers(currentUser) {
-    return Object.values(this.#users).filter(
-      (user) => user.name !== currentUser
-    );
-  }
+  getUnreadMessages(username) {
+    const unreadMessages = [];
 
-  #openDM(message, updateRecipients) {
-    const [_, username] = message.split(" ");
-    updateRecipients([this.#users[username]]);
-  }
+    Object.values(this.#users).forEach((user) => {
+      const groupMessages = user.getSentMessagesTo("all");
+      const userMessages = user.getSentMessagesTo(username);
 
-  handleConnection(socket) {
-    socket.setEncoding("utf-8");
-    socket.write("Enter your name : ");
-
-    socket.once("data", (data) => {
-      const name = data.trim();
-      const user = new User(socket, name);
-
-      this.#users[name] = user;
-      user.write(this.#greet(name));
-      socket.write(this.#displayMenu());
-
-      Object.values(this.#users).forEach((user) =>
-        user.updateRecipients(this.#getAllUsers(user.name))
-      );
-
-      user.broadcast((message, cb) => this.#openDM(message, cb));
+      unreadMessages.push(...userMessages, ...groupMessages);
     });
+
+    return unreadMessages.join("\n");
+  }
+
+  get registeredUsers() {
+    return Object.keys(this.#users);
   }
 }
 
