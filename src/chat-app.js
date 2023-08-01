@@ -43,8 +43,11 @@ class ChatApp {
     socket.once("data", (data) => {
       const { sender } = JSON.parse(data);
 
-      this.#users.addUser(new User(sender));
-      this.#sockets.addSocket(sender, socket);
+      // Valid User check
+      if (!this.#users.registeredUsers.includes(sender)) {
+        this.#users.addUser(new User(sender));
+        this.#sockets.addSocket(sender, socket);
+      }
 
       response.message =
         "Hello, " +

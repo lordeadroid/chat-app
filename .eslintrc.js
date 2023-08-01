@@ -36,7 +36,7 @@ module.exports = {
     "dot-notation": "warn",
     eqeqeq: "warn",
     "max-depth": ["warn", 3],
-    "max-statements": "warn",
+    "max-statements": ["warn", 15],
     "new-cap": "error",
     "no-eval": "warn",
     "no-extra-semi": "warn",
