@@ -2,9 +2,11 @@ const User = require("./user");
 
 class ChatApp {
   #users;
+  #sockets;
 
-  constructor(users) {
+  constructor(users, sockets) {
     this.#users = users;
+    this.#sockets = sockets;
   }
 
   #displayMenu() {
@@ -13,22 +15,42 @@ class ChatApp {
       "\n" +
       "By default group chat is selected" +
       "\n" +
-      `Registered users: ${this.#users.registeredUsers.join(", ")}` +
-      "\n"
+      `Registered users: ${this.#users.registeredUsers.join(", ")}`
     );
   }
 
   handleConnection(socket) {
+    const response = {
+      receiver: "group",
+      message: "Enter your name : ",
+    };
+
     socket.setEncoding("utf-8");
-    socket.write("Enter your name : ");
+    socket.write(JSON.stringify(response));
 
     socket.once("data", (data) => {
-      const name = data.trim();
+      const { sender } = JSON.parse(data);
 
-      this.#users.addUser(new User(name));
-      socket.write(`Hello, ${name}\n`);
-      socket.write(this.#displayMenu());
-      socket.write(this.#users.getUnreadMessages(name));
+      this.#users.addUser(new User(sender));
+      this.#sockets.addSocket(sender, socket);
+
+      response.sender = sender;
+      response.message =
+        "Hello, " +
+        `${sender}\n${this.#displayMenu()}\n` +
+        `${this.#users.getUnreadMessages(sender)}`;
+
+      socket.write(JSON.stringify(response));
+
+      socket.on("data", (data) => {
+        const { sender, receiver, message } = JSON.parse(data);
+
+        const recipients =
+          receiver === "group" ? this.#users.getOtherUsers(sender) : [receiver];
+
+        this.#sockets.send(recipients, { sender, receiver, message });
+        // this.#users.send(sender, receiver, message);
+      });
     });
   }
 }

@@ -32,6 +32,10 @@ class Users {
     return unreadMessages.join("\n");
   }
 
+  getOtherUsers(username) {
+    return Object.keys(this.#users).filter((name) => name !== username);
+  }
+
   get registeredUsers() {
     return Object.keys(this.#users);
   }
