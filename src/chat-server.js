@@ -9,7 +9,7 @@ const main = () => {
 
   chatServer.on("connection", (socket) => {
     console.log("New user joined");
-    chatApp.handleConnection(socket);
+    chatApp.setupConnection(socket);
   });
 
   chatServer.listen(8000);

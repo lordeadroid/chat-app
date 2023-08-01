@@ -19,8 +19,20 @@ class ChatApp {
     );
   }
 
-  handleConnection(socket) {
+  #startConversing(data) {
+    const { sender, receiver, message } = JSON.parse(data);
+
+    const recipients =
+      receiver !== "group" ? [receiver] : this.#users.getOtherUsers(sender);
+
+    this.#users.send(sender, receiver, message);
+    this.#users.receive(sender, recipients, message);
+    this.#sockets.write(recipients, { sender, receiver, message });
+  }
+
+  setupConnection(socket) {
     const response = {
+      sender: "server",
       receiver: "group",
       message: "Enter your name : ",
     };
@@ -34,23 +46,15 @@ class ChatApp {
       this.#users.addUser(new User(sender));
       this.#sockets.addSocket(sender, socket);
 
-      response.sender = sender;
       response.message =
         "Hello, " +
         `${sender}\n${this.#displayMenu()}\n` +
         `${this.#users.getUnreadMessages(sender)}`;
 
       socket.write(JSON.stringify(response));
+      response.sender = sender;
 
-      socket.on("data", (data) => {
-        const { sender, receiver, message } = JSON.parse(data);
-
-        const recipients =
-          receiver === "group" ? this.#users.getOtherUsers(sender) : [receiver];
-
-        this.#sockets.send(recipients, { sender, receiver, message });
-        // this.#users.send(sender, receiver, message);
-      });
+      socket.on("data", (data) => this.#startConversing(data));
     });
   }
 }

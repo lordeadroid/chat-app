@@ -9,21 +9,23 @@ class Users {
     this.#users[user.name] = user;
   }
 
-  send(username, message) {
-    const user = this.#users[username];
-    user.send(username, message);
+  send(sender, recipient, message) {
+    const user = this.#users[sender];
+    user.send(recipient, message);
   }
 
-  receive(username, message) {
-    const user = this.#users[username];
-    user.receive(username, message);
+  receive(sender, recipients, message) {
+    recipients.forEach((recipient) => {
+      const user = this.#users[recipient];
+      user.receive(sender, message);
+    });
   }
 
   getUnreadMessages(username) {
     const unreadMessages = [];
 
     Object.values(this.#users).forEach((user) => {
-      const groupMessages = user.getSentMessagesTo("all");
+      const groupMessages = user.getSentMessagesTo("group");
       const userMessages = user.getSentMessagesTo(username);
 
       unreadMessages.push(...userMessages, ...groupMessages);

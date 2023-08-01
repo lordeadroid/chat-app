@@ -1,7 +1,7 @@
 const net = require("node:net");
 
-const displayMessage = (message) => {
-  console.log(message);
+const displayMessage = (sender, message) => {
+  console.log(sender + " >> " + message);
 };
 
 const setupClient = () => {
@@ -27,10 +27,10 @@ const setupClient = () => {
     });
 
     chatClient.on("data", (data) => {
-      const serverResponse = JSON.parse(data);
+      const { sender, receiver, message } = JSON.parse(data);
 
-      displayMessage(serverResponse.message);
-      response.receiver = serverResponse.receiver;
+      response.receiver = receiver;
+      displayMessage(sender, message);
     });
   });
 };

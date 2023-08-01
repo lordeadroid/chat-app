@@ -9,7 +9,7 @@ class Sockets {
     this.#sockets[name] = socket;
   }
 
-  send(recipients, message) {
+  write(recipients, message) {
     recipients.forEach((recipient) =>
       this.#sockets[recipient].write(JSON.stringify(message))
     );

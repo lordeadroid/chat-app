@@ -19,15 +19,15 @@ class User {
   }
 
   getSentMessagesTo(username) {
-    return this.#messages.sent.filter(
-      (message) => message.recipient === username
-    );
+    return this.#messages.sent
+      .filter((message) => message.recipient === username)
+      .map((message) => `${this.#name} >> ${message.message}`);
   }
 
   getReceivedMessagesFrom(username) {
-    return this.#messages.received.filter(
-      (message) => message.sender === username
-    );
+    return this.#messages.received
+      .filter((message) => message.sender === username)
+      .map((message) => `${message.sender} >> ${message.message}`);
   }
 
   get name() {
