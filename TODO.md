@@ -6,6 +6,7 @@
 
 <!-- handle commands to open a chat in chat-client.js -->
 <!-- add view to client side -->
+<!-- refactor overall contract of the app -->
 
 print all data at a time - don't have two sources of data
-refactor overall contract of the app
+get all messages and repaint everything
