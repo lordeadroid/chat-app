@@ -33,7 +33,7 @@ class ChatApp {
       ...this.#users.getMessages(username),
     ];
 
-    socket.write(JSON.stringify({ chats }));
+    return { chats, inValid: false };
   }
 
   #sendMessage(sender, receiver, message) {
@@ -50,26 +50,15 @@ class ChatApp {
   }
 
   setupConnection(socket) {
-    let sender;
-    const response = {
-      response: "VALIDATE",
-      chats: [{ sender: "server", message: "Enter your name : " }],
-    };
+    socket.setOnLoginAttempt((username, socket) =>
+      this.#validateUser(username, socket)
+    );
 
-    socket.setEncoding("utf-8");
-    socket.write(JSON.stringify(response));
+    socket.setOnNewMessage((sender, receiver, message) =>
+      this.#sendMessage(sender, receiver, message)
+    );
 
-    socket.on("data", (data) => {
-      const { action, username, receiver, message } = JSON.parse(data);
-
-      if (action === "VALIDATE") {
-        sender = username;
-        this.#validateUser(username, socket);
-        return;
-      }
-
-      if (action === "PUT") this.#sendMessage(sender, receiver, message);
-    });
+    socket.start();
   }
 }
 

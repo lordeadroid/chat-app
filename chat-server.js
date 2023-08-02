@@ -3,6 +3,7 @@ const net = require("node:net");
 const Users = require("./src/users");
 const Sockets = require("./src/sockets");
 const ChatApp = require("./src/chat-app");
+const SocketHandler = require("./socket-handler");
 
 const main = () => {
   const chatServer = net.createServer();
@@ -10,7 +11,7 @@ const main = () => {
 
   chatServer.on("connection", (socket) => {
     console.log("New user joined");
-    chatApp.setupConnection(socket);
+    chatApp.setupConnection(new SocketHandler(socket));
   });
 
   chatServer.listen(8000);

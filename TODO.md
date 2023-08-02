@@ -8,5 +8,7 @@
 <!-- add view to client side -->
 <!-- refactor overall contract of the app -->
 <!-- print all data at a time - don't have two sources of data -->
+<!-- refactor server contract -->
 
-refactor server contract
+remove group chat
+add a feature to show previous messages of a chat
