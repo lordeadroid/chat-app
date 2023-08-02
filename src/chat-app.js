@@ -37,12 +37,11 @@ class ChatApp {
   }
 
   #sendMessage(sender, receiver, message) {
-    const recipients =
-      receiver !== "group" ? [receiver] : this.#users.getOtherUsers(sender);
+    if (this.#users.isNew(receiver)) return;
 
     this.#users.send(sender, receiver, message);
-    this.#users.receive(sender, recipients, message);
-    this.#sockets.write(recipients, {
+    this.#users.receive(sender, receiver, message);
+    this.#sockets.write([receiver], {
       sender,
       receiver,
       chats: [{ sender, message }],

@@ -11,27 +11,16 @@ class Users {
 
   send(sender, recipient, message) {
     const user = this.#users[sender];
-    user.send(recipient, message);
+    user.store(sender, recipient, message);
   }
 
-  receive(sender, recipients, message) {
-    recipients.forEach((recipient) => {
-      const user = this.#users[recipient];
-      user.receive(sender, message);
-    });
+  receive(sender, recipient, message) {
+    const user = this.#users[recipient];
+    user.store(sender, recipient, message);
   }
 
   getMessages(username) {
-    const messages = [];
-
-    Object.values(this.#users).forEach((user) => {
-      const groupMessages = user.getSentMessagesTo("group");
-      const userMessages = user.getSentMessagesTo(username);
-
-      messages.push(...userMessages, ...groupMessages);
-    });
-
-    return messages;
+    return this.#users[username].getChat();
   }
 
   getOtherUsers(username) {

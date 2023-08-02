@@ -1,14 +1,13 @@
 class ChatClient {
   #view;
   #socket;
-  #inputStream;
   #recipient;
+  #inputStream;
   #sendResponse;
 
   constructor(socket, inputStream, view) {
     this.#view = view;
     this.#socket = socket;
-    this.#recipient = "group";
     this.#inputStream = inputStream;
 
     this.#socket.setEncoding("utf-8");

@@ -4,38 +4,22 @@ class User {
 
   constructor(username) {
     this.#name = username;
-    this.#messages = {
-      sent: [],
-      received: [],
-    };
+    this.#messages = [];
   }
 
-  send(recipient, message) {
-    this.#messages.sent.push({
-      recipient,
-      message,
-      sender: this.#name,
-    });
-  }
+  store(sender, recipient, message) {
+    const type = sender === this.#name ? "sent" : "received";
 
-  receive(sender, message) {
-    this.#messages.received.push({
+    this.#messages.push({
+      type,
       sender,
       message,
-      recipient: this.#name,
+      recipient,
     });
   }
 
-  getSentMessagesTo(username) {
-    return this.#messages.sent.filter(
-      (message) => message.recipient === username
-    );
-  }
-
-  getReceivedMessagesFrom(username) {
-    return this.#messages.received.filter(
-      (message) => message.sender === username
-    );
+  getChat() {
+    return JSON.parse(JSON.stringify(this.#messages));
   }
 
   get name() {
