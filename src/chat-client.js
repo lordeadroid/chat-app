@@ -2,13 +2,13 @@ class ChatClient {
   #view;
   #socket;
   #inputStream;
-  #currentChat;
+  #recipient;
   #sendResponse;
 
   constructor(socket, inputStream, view) {
     this.#view = view;
     this.#socket = socket;
-    this.#currentChat = "group";
+    this.#recipient = "group";
     this.#inputStream = inputStream;
 
     this.#socket.setEncoding("utf-8");
@@ -21,8 +21,8 @@ class ChatClient {
 
   #sendCredentials(username) {
     const response = {
+      username,
       action: "VALIDATE",
-      credentials: username,
     };
 
     this.#socket.write(JSON.stringify(response));
@@ -32,30 +32,24 @@ class ChatClient {
     const response = {
       message,
       action: "PUT",
-      receiver: this.#currentChat,
+      receiver: this.#recipient,
     };
 
     this.#socket.write(JSON.stringify(response));
   }
 
-  #openChat(username) {
-    const response = {
-      username,
-      action: "GET",
-    };
-
-    this.#currentChat = username;
-    this.#socket.write(JSON.stringify(response));
+  #updateRecipient(username) {
+    this.#recipient = username;
   }
 
   #onData(data) {
-    const { isInvalid, chats } = JSON.parse(data);
+    const { response, chats } = JSON.parse(data);
 
-    console.log(isInvalid, chats);
     this.#view.displayChats(chats);
     this.#onInput((data) => this.#sendMessages(data));
 
-    if (isInvalid) this.#onInput((data) => this.#sendCredentials(data));
+    if (response === "VALIDATE")
+      this.#onInput((data) => this.#sendCredentials(data));
   }
 
   #onEnd() {
@@ -75,7 +69,7 @@ class ChatClient {
 
       if (data.startsWith("open ")) {
         const [_, username] = data.trim().split(" ");
-        this.#openChat(username);
+        this.#updateRecipient(username);
         return;
       }
 

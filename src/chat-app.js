@@ -19,55 +19,56 @@ class ChatApp {
     );
   }
 
-  #startConversing(data, sender) {
-    const { action, receiver, message } = JSON.parse(data);
+  #validateUser(username, socket) {
+    if (this.#users.isPresent(username)) this.#sockets.removeSocket(username);
+    if (this.#users.isNew(username)) this.#users.addUser(new User(username));
 
-    if (action === "PUT") {
-      const recipients =
-        receiver !== "group" ? [receiver] : this.#users.getOtherUsers(sender);
+    this.#sockets.addSocket(username, socket);
 
-      this.#users.send(sender, receiver, message);
-      this.#users.receive(sender, recipients, message);
-      this.#sockets.write(recipients, {
-        sender,
-        receiver,
-        chats: [{ sender, message }],
-      });
-    }
+    const chats = [
+      {
+        sender: "server",
+        message: `Hello, ${username}\n${this.#displayMenu()}`,
+      },
+      ...this.#users.getMessages(username),
+    ];
+
+    socket.write(JSON.stringify({ chats }));
+  }
+
+  #sendMessage(sender, receiver, message) {
+    const recipients =
+      receiver !== "group" ? [receiver] : this.#users.getOtherUsers(sender);
+
+    this.#users.send(sender, receiver, message);
+    this.#users.receive(sender, recipients, message);
+    this.#sockets.write(recipients, {
+      sender,
+      receiver,
+      chats: [{ sender, message }],
+    });
   }
 
   setupConnection(socket) {
+    let sender;
     const response = {
-      isInvalid: true,
+      response: "VALIDATE",
       chats: [{ sender: "server", message: "Enter your name : " }],
     };
 
     socket.setEncoding("utf-8");
     socket.write(JSON.stringify(response));
 
-    socket.once("data", (data) => {
-      const { credentials } = JSON.parse(data);
+    socket.on("data", (data) => {
+      const { action, username, receiver, message } = JSON.parse(data);
 
-      if (this.#users.isPresent(credentials))
-        this.#sockets.removeSocket(credentials);
-      if (this.#users.isNew(credentials))
-        this.#users.addUser(new User(credentials));
+      if (action === "VALIDATE") {
+        sender = username;
+        this.#validateUser(username, socket);
+        return;
+      }
 
-      this.#sockets.addSocket(credentials, socket);
-
-      response.chats = [
-        {
-          sender: "server",
-          message: `Hello, ${credentials}\n${this.#displayMenu()}`,
-        },
-        ...this.#users.getMessages(credentials),
-      ];
-
-      response.isInvalid = false;
-
-      socket.write(JSON.stringify(response));
-
-      socket.on("data", (data) => this.#startConversing(data, credentials));
+      if (action === "PUT") this.#sendMessage(sender, receiver, message);
     });
   }
 }
