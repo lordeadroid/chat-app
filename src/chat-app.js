@@ -19,21 +19,23 @@ class ChatApp {
     );
   }
 
-  #startConversing(data) {
-    const { sender, receiver, message } = JSON.parse(data);
+  #startConversing(data, sender) {
+    const { action, receiver, message } = JSON.parse(data);
 
-    const recipients =
-      receiver !== "group" ? [receiver] : this.#users.getOtherUsers(sender);
+    if (action === "PUT") {
+      const recipients =
+        receiver !== "group" ? [receiver] : this.#users.getOtherUsers(sender);
 
-    this.#users.send(sender, receiver, message);
-    this.#users.receive(sender, recipients, message);
-    this.#sockets.write(recipients, { sender, receiver, message });
+      this.#users.send(sender, receiver, message);
+      this.#users.receive(sender, recipients, message);
+      this.#sockets.write(recipients, { sender, receiver, message });
+    }
   }
 
   setupConnection(socket) {
     const response = {
+      isInvalid: true,
       sender: "server",
-      receiver: "group",
       message: "Enter your name : ",
     };
 
@@ -41,22 +43,25 @@ class ChatApp {
     socket.write(JSON.stringify(response));
 
     socket.once("data", (data) => {
-      const { sender } = JSON.parse(data);
+      const { credentials } = JSON.parse(data);
 
-      if (this.#users.isPresent(sender)) this.#sockets.removeSocket(sender);
-      if (this.#users.isNew(sender)) this.#users.addUser(new User(sender));
+      if (this.#users.isPresent(credentials))
+        this.#sockets.removeSocket(credentials);
+      if (this.#users.isNew(credentials))
+        this.#users.addUser(new User(credentials));
 
-      this.#sockets.addSocket(sender, socket);
+      this.#sockets.addSocket(credentials, socket);
 
       response.message =
         "Hello, " +
-        `${sender}\n${this.#displayMenu()}\n` +
-        `${this.#users.getUnreadMessages(sender)}`;
+        `${credentials}\n${this.#displayMenu()}\n` +
+        `${this.#users.getUnreadMessages(credentials)}`;
+
+      response.isInvalid = false;
 
       socket.write(JSON.stringify(response));
-      response.sender = sender;
 
-      socket.on("data", (data) => this.#startConversing(data));
+      socket.on("data", (data) => this.#startConversing(data, credentials));
     });
   }
 }

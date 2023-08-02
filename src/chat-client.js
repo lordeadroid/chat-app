@@ -1,55 +1,75 @@
-const net = require("node:net");
+class ChatClient {
+  #view;
+  #socket;
+  #inputStream;
+  #sendResponse;
 
-const displayMessage = (sender, message) => {
-  console.log(sender + " >> " + message);
-};
+  constructor(socket, inputStream, view) {
+    this.#view = view;
+    this.#socket = socket;
+    this.#inputStream = inputStream;
 
-const setupClient = () => {
-  const chatClient = net.createConnection(8000);
+    this.#socket.setEncoding("utf-8");
+    this.#inputStream.setEncoding("utf-8");
+  }
 
-  chatClient.on("connect", () => {
-    const response = { sender: "", receiver: "group" };
+  #render(...messages) {
+    this.#view.display(messages);
+  }
 
-    chatClient.setEncoding("utf-8");
-    process.stdin.setEncoding("utf-8");
+  #onInput(cb) {
+    this.#sendResponse = cb;
+  }
 
-    process.stdin.once("data", (data) => {
-      const username = data.trim();
+  #sendCredentials(username) {
+    const response = {
+      action: "VALIDATE",
+      credentials: username,
+    };
 
-      response.sender = username;
-      response.message = username;
-      chatClient.write(JSON.stringify(response));
+    this.#socket.write(JSON.stringify(response));
+  }
 
-      process.stdin.on("data", (data) => {
-        const message = data.trim();
+  #sendMessages(message) {
+    const response = {
+      message,
+      action: "PUT",
+      receiver: "group",
+    };
 
-        if (message === "END") {
-          chatClient.end();
-          return;
-        }
+    this.#socket.write(JSON.stringify(response));
+  }
 
-        if (message.startsWith("open ")) {
-          const [_, username] = message.split(" ");
-          response.receiver = username;
-          console.log("Messages will go to", username);
-          return;
-        }
+  #onData(data) {
+    const { isInvalid, sender, message } = JSON.parse(data);
+    this.#render(sender, message);
 
-        response.message = data.trim();
-        chatClient.write(JSON.stringify(response));
-      });
+    if (isInvalid) {
+      this.#onInput((data) => this.#sendCredentials(data));
+      return;
+    }
+
+    this.#onInput((data) => this.#sendMessages(data));
+  }
+
+  #onEnd() {
+    this.#render("Session ended");
+    process.exit(0);
+  }
+
+  setup() {
+    this.#socket.on("end", () => this.#onEnd());
+    this.#socket.on("data", (data) => this.#onData(data));
+
+    this.#inputStream.on("data", (data) => {
+      if (data === "END\n") {
+        this.#socket.end();
+        return;
+      }
+
+      this.#sendResponse(data.trim());
     });
+  }
+}
 
-    chatClient.on("data", (data) => {
-      const { sender, message } = JSON.parse(data);
-      displayMessage(sender, message);
-    });
-
-    chatClient.on("end", () => {
-      console.log("Session ended");
-      process.exit(0);
-    });
-  });
-};
-
-setupClient();
+module.exports = ChatClient;

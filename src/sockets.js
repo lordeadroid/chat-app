@@ -15,9 +15,9 @@ class Sockets {
   }
 
   write(recipients, message) {
-    recipients.forEach((recipient) =>
-      this.#sockets[recipient].write(JSON.stringify(message))
-    );
+    recipients.forEach((recipient) => {
+      this.#sockets[recipient].write(JSON.stringify(message));
+    });
   }
 }
 

@@ -1,7 +1,8 @@
 const net = require("node:net");
-const Users = require("./users");
-const ChatApp = require("./chat-app");
-const Sockets = require("./sockets");
+
+const Users = require("./src/users");
+const Sockets = require("./src/sockets");
+const ChatApp = require("./src/chat-app");
 
 const main = () => {
   const chatServer = net.createServer();
