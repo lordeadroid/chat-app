@@ -10,5 +10,5 @@
 <!-- print all data at a time - don't have two sources of data -->
 <!-- refactor server contract -->
 
-remove group chat
-add a feature to show previous messages of a chat
+<!-- remove group chat -->
+<!-- add a feature to show previous messages of a chat -->

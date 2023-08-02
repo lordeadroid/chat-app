@@ -30,7 +30,6 @@ class ChatApp {
         sender: "server",
         message: `Hello, ${username}\n${this.#displayMenu()}`,
       },
-      ...this.#users.getMessages(username),
     ];
 
     return { chats, inValid: false };
@@ -48,6 +47,17 @@ class ChatApp {
     });
   }
 
+  #getChat(sender, receiver) {
+    if (this.#users.isNew(receiver)) return [];
+
+    return this.#users
+      .getMessages(sender)
+      .filter(
+        (message) =>
+          message.sender === receiver || message.recipient === receiver
+      );
+  }
+
   setupConnection(socket) {
     socket.setOnLoginAttempt((username, socket) =>
       this.#validateUser(username, socket)
@@ -56,6 +66,10 @@ class ChatApp {
     socket.setOnNewMessage((sender, receiver, message) =>
       this.#sendMessage(sender, receiver, message)
     );
+
+    socket.setOnChatOpen((sender, receiver) => {
+      return this.#getChat(sender, receiver);
+    });
 
     socket.start();
   }

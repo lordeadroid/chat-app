@@ -37,8 +37,13 @@ class ChatClient {
     this.#socket.write(JSON.stringify(response));
   }
 
-  #updateRecipient(username) {
-    this.#recipient = username;
+  #getChat(username) {
+    const response = {
+      action: "GET",
+      receiver: this.#recipient,
+    };
+
+    this.#socket.write(JSON.stringify(response));
   }
 
   #onData(data) {
@@ -66,9 +71,11 @@ class ChatClient {
         return;
       }
 
-      if (data.startsWith("open ")) {
+      if (data.startsWith("connect ")) {
         const [_, username] = data.trim().split(" ");
-        this.#updateRecipient(username);
+        this.#recipient = username;
+        this.#getChat(username);
+        this.#view.clear();
         return;
       }
 

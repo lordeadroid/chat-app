@@ -1,5 +1,6 @@
 class SocketHandler {
   #socket;
+  #onChatOpen;
   #onNewMessage;
   #onLoginAttempt;
 
@@ -8,6 +9,7 @@ class SocketHandler {
     this.#socket.setEncoding("utf-8");
   }
 
+  // TODO move it to client side
   #askCredentials() {
     const response = {
       response: "VALIDATE",
@@ -15,6 +17,10 @@ class SocketHandler {
     };
 
     this.#socket.write(JSON.stringify(response));
+  }
+
+  setOnChatOpen(cb) {
+    this.#onChatOpen = cb;
   }
 
   setOnLoginAttempt(cb) {
@@ -42,8 +48,8 @@ class SocketHandler {
 
   start() {
     let sender;
-    this.#socket.on("data", (data) => {
-      const { action, username, receiver, message } = JSON.parse(data);
+    this.#socket.on("data", (request) => {
+      const { action, username, receiver, message } = JSON.parse(request);
 
       switch (action) {
         case "VALIDATE":
@@ -53,6 +59,11 @@ class SocketHandler {
 
         case "PUT":
           this.#onNewMessage(sender, receiver, message);
+          break;
+
+        case "GET":
+          const chats = this.#onChatOpen(sender, receiver);
+          this.#write({ chats });
           break;
       }
     });
