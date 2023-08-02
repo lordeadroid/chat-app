@@ -28,15 +28,18 @@ class ChatApp {
 
       this.#users.send(sender, receiver, message);
       this.#users.receive(sender, recipients, message);
-      this.#sockets.write(recipients, { sender, receiver, message });
+      this.#sockets.write(recipients, {
+        sender,
+        receiver,
+        chats: [{ sender, message }],
+      });
     }
   }
 
   setupConnection(socket) {
     const response = {
       isInvalid: true,
-      sender: "server",
-      message: "Enter your name : ",
+      chats: [{ sender: "server", message: "Enter your name : " }],
     };
 
     socket.setEncoding("utf-8");
@@ -52,10 +55,13 @@ class ChatApp {
 
       this.#sockets.addSocket(credentials, socket);
 
-      response.message =
-        "Hello, " +
-        `${credentials}\n${this.#displayMenu()}\n` +
-        `${this.#users.getUnreadMessages(credentials)}`;
+      response.chats = [
+        {
+          sender: "server",
+          message: `Hello, ${credentials}\n${this.#displayMenu()}`,
+        },
+        ...this.#users.getMessages(credentials),
+      ];
 
       response.isInvalid = false;
 

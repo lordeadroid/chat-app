@@ -15,8 +15,8 @@ class ChatClient {
     this.#inputStream.setEncoding("utf-8");
   }
 
-  #render(...messages) {
-    this.#view.display(messages);
+  #render(chats) {
+    this.#view.display(chats);
   }
 
   #onInput(cb) {
@@ -54,8 +54,8 @@ class ChatClient {
 
   #onData(data) {
     // const { response = ["G"], sender, message } = JSON.parse(data);
-    const { isInvalid, sender, message } = JSON.parse(data);
-    this.#render(sender, message);
+    const { isInvalid, chats } = JSON.parse(data);
+    this.#render(chats);
 
     if (isInvalid) {
       this.#onInput((data) => this.#sendCredentials(data));
@@ -81,7 +81,7 @@ class ChatClient {
       }
 
       if (data.startsWith("open ")) {
-        const [action, username] = data.trim().split(" ");
+        const [_, username] = data.trim().split(" ");
         this.#openChat(username);
         return;
       }

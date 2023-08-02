@@ -8,7 +8,7 @@ const main = () => {
   const chatClient = new ChatClient(
     socket,
     process.stdin,
-    new ClientView(console.log)
+    new ClientView(console)
   );
 
   socket.on("connect", () => chatClient.setup());

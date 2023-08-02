@@ -11,23 +11,31 @@ class User {
   }
 
   send(recipient, message) {
-    this.#messages.sent.push({ recipient, message });
+    this.#messages.sent.push({
+      recipient,
+      message,
+      sender: this.#name,
+    });
   }
 
   receive(sender, message) {
-    this.#messages.received.push({ sender, message });
+    this.#messages.received.push({
+      sender,
+      message,
+      recipient: this.#name,
+    });
   }
 
   getSentMessagesTo(username) {
-    return this.#messages.sent
-      .filter((message) => message.recipient === username)
-      .map((message) => `${this.#name} >> ${message.message}`);
+    return this.#messages.sent.filter(
+      (message) => message.recipient === username
+    );
   }
 
   getReceivedMessagesFrom(username) {
-    return this.#messages.received
-      .filter((message) => message.sender === username)
-      .map((message) => `${message.sender} >> ${message.message}`);
+    return this.#messages.received.filter(
+      (message) => message.sender === username
+    );
   }
 
   get name() {

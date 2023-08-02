@@ -5,8 +5,10 @@ class ClientView {
     this.#renderer = renderer;
   }
 
-  display(messages) {
-    this.#renderer(messages.join(" >> "));
+  display(chats) {
+    chats.forEach((chat) => {
+      this.#renderer.log(chat.sender + " >> " + chat.message);
+    });
   }
 }
 

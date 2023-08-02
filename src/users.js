@@ -21,17 +21,17 @@ class Users {
     });
   }
 
-  getUnreadMessages(username) {
-    const unreadMessages = [];
+  getMessages(username) {
+    const messages = [];
 
     Object.values(this.#users).forEach((user) => {
       const groupMessages = user.getSentMessagesTo("group");
       const userMessages = user.getSentMessagesTo(username);
 
-      unreadMessages.push(...userMessages, ...groupMessages);
+      messages.push(...userMessages, ...groupMessages);
     });
 
-    return unreadMessages.join("\n");
+    return messages;
   }
 
   getOtherUsers(username) {
