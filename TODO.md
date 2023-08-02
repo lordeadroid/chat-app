@@ -12,3 +12,5 @@
 
 <!-- remove group chat -->
 <!-- add a feature to show previous messages of a chat -->
+
+add command mode in client side;

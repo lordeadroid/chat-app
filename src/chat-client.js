@@ -4,18 +4,16 @@ class ChatClient {
   #recipient;
   #inputStream;
   #sendResponse;
+  #isInCommandMode;
 
   constructor(socket, inputStream, view) {
     this.#view = view;
     this.#socket = socket;
+    this.#isInCommandMode = false;
     this.#inputStream = inputStream;
 
     this.#socket.setEncoding("utf-8");
     this.#inputStream.setEncoding("utf-8");
-  }
-
-  #onInput(cb) {
-    this.#sendResponse = cb;
   }
 
   #sendCredentials(username) {
@@ -37,7 +35,7 @@ class ChatClient {
     this.#socket.write(JSON.stringify(response));
   }
 
-  #getChat(username) {
+  #getChat() {
     const response = {
       action: "GET",
       receiver: this.#recipient,
@@ -50,10 +48,10 @@ class ChatClient {
     const { response, chats } = JSON.parse(data);
 
     this.#view.displayChats(chats);
-    this.#onInput((data) => this.#sendMessages(data));
+    this.#sendResponse = (data) => this.#sendMessages(data);
 
     if (response === "VALIDATE")
-      this.#onInput((data) => this.#sendCredentials(data));
+      this.#sendResponse = (data) => this.#sendCredentials(data);
   }
 
   #onEnd() {
@@ -61,21 +59,35 @@ class ChatClient {
     this.#inputStream.destroy();
   }
 
+  #handleCommands(command, argument) {
+    switch (command) {
+      case "END":
+        this.#socket.end();
+        break;
+      case "CONNECT":
+        this.#isInCommandMode = false;
+        this.#recipient = argument;
+        this.#view.clear();
+        this.#getChat();
+        break;
+    }
+  }
+
   setup() {
     this.#socket.on("end", () => this.#onEnd());
     this.#socket.on("data", (data) => this.#onData(data));
 
     this.#inputStream.on("data", (data) => {
-      if (data === "END\n") {
-        this.#socket.end();
+      if (this.#isInCommandMode) {
+        const [command, argument] = data.trim().split(" ");
+        this.#handleCommands(command, argument);
         return;
       }
 
-      if (data.startsWith("connect ")) {
-        const [_, username] = data.trim().split(" ");
-        this.#recipient = username;
-        this.#getChat(username);
+      if (data === "!home\n") {
         this.#view.clear();
+        this.#isInCommandMode = true;
+        this.#view.display("command mode");
         return;
       }
 
