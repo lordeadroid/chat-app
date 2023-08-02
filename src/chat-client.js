@@ -2,11 +2,13 @@ class ChatClient {
   #view;
   #socket;
   #inputStream;
+  #currentChat;
   #sendResponse;
 
   constructor(socket, inputStream, view) {
     this.#view = view;
     this.#socket = socket;
+    this.#currentChat = "group";
     this.#inputStream = inputStream;
 
     this.#socket.setEncoding("utf-8");
@@ -34,9 +36,19 @@ class ChatClient {
     const response = {
       message,
       action: "PUT",
-      receiver: "group",
+      receiver: this.#currentChat,
     };
 
+    this.#socket.write(JSON.stringify(response));
+  }
+
+  #getChat(username) {
+    const response = {
+      username,
+      action: "GET",
+    };
+
+    this.#currentChat = username;
     this.#socket.write(JSON.stringify(response));
   }
 
@@ -64,6 +76,12 @@ class ChatClient {
     this.#inputStream.on("data", (data) => {
       if (data === "END\n") {
         this.#socket.end();
+        return;
+      }
+
+      if (data.startsWith("open ")) {
+        const [action, username] = data.trim().split(" ");
+        this.#getChat(username);
         return;
       }
 
