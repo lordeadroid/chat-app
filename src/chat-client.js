@@ -15,10 +15,6 @@ class ChatClient {
     this.#inputStream.setEncoding("utf-8");
   }
 
-  #render(chats) {
-    this.#view.display(chats);
-  }
-
   #onInput(cb) {
     this.#sendResponse = cb;
   }
@@ -53,21 +49,18 @@ class ChatClient {
   }
 
   #onData(data) {
-    // const { response = ["G"], sender, message } = JSON.parse(data);
     const { isInvalid, chats } = JSON.parse(data);
-    this.#render(chats);
 
-    if (isInvalid) {
-      this.#onInput((data) => this.#sendCredentials(data));
-      return;
-    }
-
+    console.log(isInvalid, chats);
+    this.#view.displayChats(chats);
     this.#onInput((data) => this.#sendMessages(data));
+
+    if (isInvalid) this.#onInput((data) => this.#sendCredentials(data));
   }
 
   #onEnd() {
-    this.#render("Session ended");
-    process.exit(0);
+    this.#view.display("Session ended");
+    this.#inputStream.destroy();
   }
 
   setup() {
