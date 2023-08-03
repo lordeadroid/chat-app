@@ -49,18 +49,6 @@ class Database {
   }
 
   // open(from, groupName) {}
-
-  isPresent(username) {
-    return Object.keys(this.#directChats).includes(username);
-  }
-
-  isNewUser(username) {
-    return !this.isPresent(username);
-  }
-
-  get users() {
-    return Object.values(this.#directChats);
-  }
 }
 
 module.exports = Database;

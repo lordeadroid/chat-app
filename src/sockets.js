@@ -5,11 +5,11 @@ class Sockets {
     this.#sockets = {};
   }
 
-  addSocket(name, socket) {
+  add(name, socket) {
     this.#sockets[name] = socket;
   }
 
-  removeSocket(name) {
+  remove(name) {
     this.#sockets[name].end();
     delete this.#sockets[name];
   }

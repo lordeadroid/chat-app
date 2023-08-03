@@ -1,18 +1,19 @@
 class ChatApp {
-  #database;
+  #users;
+  #chats;
   #sockets;
 
-  constructor(database, sockets) {
+  constructor(users, chats, sockets) {
+    this.#users = users;
+    this.#chats = chats;
     this.#sockets = sockets;
-    this.#database = database;
   }
 
   #validateUser(username, socket) {
-    if (this.#database.isPresent(username))
-      this.#sockets.removeSocket(username);
-    if (this.#database.isNewUser(username)) this.#database.addUser(username);
+    if (this.#users.isPresent(username)) this.#sockets.remove(username);
+    if (this.#users.isNew(username)) this.#users.add(username);
 
-    this.#sockets.addSocket(username, socket);
+    this.#sockets.add(username, socket);
 
     return {
       inValid: false,
@@ -21,21 +22,21 @@ class ChatApp {
   }
 
   #sendMessage(sender, receiver, message) {
-    if (this.#database.isNewUser(receiver)) return;
+    if (this.#users.isNew(receiver)) return;
 
-    this.#database.storeDirectChats(sender, receiver, message);
+    this.#chats.add(sender, receiver, message);
     this.#sockets.write([receiver], {
       chats: [{ sender, message }],
     });
   }
 
   #getChat(sender, receiver) {
-    if (this.#database.isNewUser(receiver))
+    if (this.#users.isNew(receiver))
       return {
         chats: [{ sender: "server", message: `${receiver} is not a user` }],
       };
 
-    const chats = this.#database.connect(sender, receiver);
+    const chats = this.#chats.fetch(sender, receiver);
     chats.unshift({ sender: "server", message: `connected with ${receiver}` });
 
     return { chats };
