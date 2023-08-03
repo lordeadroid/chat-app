@@ -66,8 +66,6 @@ class SocketHandler {
           break;
       }
     });
-
-    // this.#askCredentials();
   }
 }
 
