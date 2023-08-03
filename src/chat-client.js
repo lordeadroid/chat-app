@@ -16,6 +16,11 @@ class ChatClient {
     this.#inputStream.setEncoding("utf-8");
   }
 
+  #openCommandMode() {
+    this.#isInCommandMode = true;
+    this.#view.displayCommandMode();
+  }
+
   #sendCredentials(username) {
     const response = {
       username,
@@ -35,22 +40,28 @@ class ChatClient {
     this.#socket.write(JSON.stringify(response));
   }
 
-  #getChat() {
+  #getChat(recipient) {
     const response = {
       action: "GET",
-      receiver: this.#recipient,
+      receiver: recipient,
     };
 
+    this.#recipient = recipient;
     this.#socket.write(JSON.stringify(response));
   }
 
   #onData(data) {
-    const { response, chats } = JSON.parse(data);
+    const { inValid, chats } = JSON.parse(data);
 
     this.#view.displayChats(chats);
     this.#sendResponse = (data) => this.#sendMessages(data);
 
-    if (response === "VALIDATE")
+    if (inValid === false) {
+      this.#openCommandMode();
+      return;
+    }
+
+    if (inValid)
       this.#sendResponse = (data) => this.#sendCredentials(data);
   }
 
@@ -64,30 +75,30 @@ class ChatClient {
       case "END":
         this.#socket.end();
         break;
+
       case "CONNECT":
         this.#isInCommandMode = false;
-        this.#recipient = argument;
+        this.#getChat(argument);
         this.#view.clear();
-        this.#getChat();
         break;
     }
   }
 
   setup() {
+    this.#view.display("Enter your name: ");
     this.#socket.on("end", () => this.#onEnd());
     this.#socket.on("data", (data) => this.#onData(data));
+    this.#sendResponse = (username) => this.#sendCredentials(username);
 
     this.#inputStream.on("data", (data) => {
       if (this.#isInCommandMode) {
         const [command, argument] = data.trim().split(" ");
-        this.#handleCommands(command, argument);
+        this.#handleCommands(command.toUpperCase(), argument);
         return;
       }
 
       if (data === "!home\n") {
-        this.#view.clear();
-        this.#isInCommandMode = true;
-        this.#view.display("command mode");
+        this.#openCommandMode();
         return;
       }
 

@@ -62,13 +62,12 @@ class SocketHandler {
           break;
 
         case "GET":
-          const chats = this.#onChatOpen(sender, receiver);
-          this.#write({ chats });
+          this.#write(this.#onChatOpen(sender, receiver));
           break;
       }
     });
 
-    this.#askCredentials();
+    // this.#askCredentials();
   }
 }
 

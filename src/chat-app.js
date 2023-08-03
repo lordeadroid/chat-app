@@ -9,30 +9,15 @@ class ChatApp {
     this.#sockets = sockets;
   }
 
-  #displayMenu() {
-    return (
-      "Type 'open [username]' to open a chat" +
-      "\n" +
-      "By default group chat is selected" +
-      "\n" +
-      `Registered users: ${this.#users.registeredUsers.join(", ")}`
-    );
-  }
-
   #validateUser(username, socket) {
     if (this.#users.isPresent(username)) this.#sockets.removeSocket(username);
     if (this.#users.isNew(username)) this.#users.addUser(new User(username));
 
     this.#sockets.addSocket(username, socket);
-
-    const chats = [
-      {
-        sender: "server",
-        message: `Hello, ${username}\n${this.#displayMenu()}`,
-      },
-    ];
-
-    return { chats, inValid: false };
+    return {
+      inValid: false,
+      chats: [{ sender: "server", message: `Hello, ${username}` }]
+    };
   }
 
   #sendMessage(sender, receiver, message) {
@@ -48,14 +33,19 @@ class ChatApp {
   }
 
   #getChat(sender, receiver) {
-    if (this.#users.isNew(receiver)) return [];
+    if (this.#users.isNew(receiver)) return {
+      chats: [{ sender: "server", message: `${receiver} is not a user` }]
+    };
 
-    return this.#users
+    const chats = this.#users
       .getMessages(sender)
       .filter(
         (message) =>
           message.sender === receiver || message.recipient === receiver
       );
+
+    chats.unshift({ sender: "server", message: `connected with ${receiver}` });
+    return { chats }
   }
 
   setupConnection(socket) {
