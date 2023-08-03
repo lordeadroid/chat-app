@@ -23,10 +23,6 @@ class Users {
     return this.#users[username].getChat();
   }
 
-  getOtherUsers(username) {
-    return Object.keys(this.#users).filter((name) => name !== username);
-  }
-
   isPresent(username) {
     return username in this.#users;
   }

@@ -61,8 +61,7 @@ class ChatClient {
       return;
     }
 
-    if (inValid)
-      this.#sendResponse = (data) => this.#sendCredentials(data);
+    if (inValid) this.#sendResponse = (data) => this.#sendCredentials(data);
   }
 
   #onEnd() {
